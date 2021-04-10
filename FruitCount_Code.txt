@@ -1,0 +1,88 @@
+//DRIVER CODE
+
+// For Exception Handling
+import java.io.IOException;
+
+// File system 
+import org.apache.hadoop.fs.Path;
+
+//  Box classes
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+
+// For MapReduce
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+public class FruitCountDriver {
+	public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+
+		Job j = new Job();
+		j.setJobName("freq counter");
+		j.setJarByClass(FruitCountDriver.class);
+		j.setMapperClass(FruitCountMapper.class);
+		j.setReducerClass(FruitCountReducer.class);
+		j.setOutputKeyClass(Text.class);
+		j.setOutputValueClass(IntWritable.class);
+
+		FileInputFormat.addInputPath(j, new Path(args[0]));
+		FileOutputFormat.setOutputPath(j, new Path(args[1]));
+
+		System.exit(j.waitForCompletion(true) ? 0 : 1);
+	}
+
+}
+
+
+//MAPPER CODE
+
+// For Exception Handling 
+import java.io.IOException;
+
+// Box classes
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+
+// For Mapper class
+import org.apache.hadoop.mapreduce.Mapper;
+
+
+public class FruitCountMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
+
+	public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+		String inputstring = value.toString();
+		for (String x : inputstring.split(" ")) {
+			if (x.equals("Apple") || x.equals("Banana") || x.equals("Grapes")) {
+				context.write(new Text(x), new IntWritable(1));
+			}
+		}
+	}
+}
+
+
+//REDUCER CODE
+
+// For Exception Handling 
+import java.io.IOException;
+
+// Box classes
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+
+// For Reducer class
+import org.apache.hadoop.mapreduce.Reducer;
+
+public class FruitCountReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+
+	public void reduce(Text key, Iterable<IntWritable> values, Context context)
+			throws IOException, InterruptedException {
+		int y = 0;
+		for (IntWritable x : values) {
+			y += 1;
+		}
+		context.write(key, new IntWritable(y));
+	}
+}
+
